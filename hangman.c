@@ -35,6 +35,14 @@ char base_Hangman[][50] = {
 {"   |              \n"},  //Layer 4
 {" __|__            \n"}}; //Layer 5
 
+char blank_Hangman[][50] = {
+{"   r----------    \n"},  //Layer 0
+{"   |         |    \n"},  //Layer 1                 
+{"   |              \n"},  //Layer 2
+{"   |              \n"},  //Layer 3                
+{"   |              \n"},  //Layer 4
+{" __|__            \n"}}; //Layer 5
+
 int menu() {
   int choice;
   printf("\nWelcome to hangman!\n");
@@ -46,6 +54,12 @@ int menu() {
 }
 
 char *setup(char *wordLen) {
+
+  for(int i = 0; i < 6; i++){
+    strcpy(base_Hangman[i],blank_Hangman[i]);
+  }
+
+
   // Chooses the starting word
   char *chosen_Word = choose_Word();
   // printf("The chosen word is: %s", chosen_Word);
@@ -123,7 +137,7 @@ void correct_Guess(char *chosen_word, char *wordLen, char guess) {
 
 void incorrect_Guess(char guess, int inc_Guess){
   
-  //code for wordbank: 
+  //code for wordbank
   // char inc_guesses[5];
 
   // for (int i = 0; i < inc_Guess; i++)
