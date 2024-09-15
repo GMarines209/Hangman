@@ -2,8 +2,7 @@
 A small C project recreating the icoic hangman game! 
 
 ## How It's Made:
-
-**Tech used:** Made entirely in C!
+    Made entirely in C! I used 2D arays that print differently based on correct / incorrect responses alongside C's String.h library to check for correct guesses. C's file I/O us also used to read a random word from the words text document and sets that to be the word to guess for that round. 
 
 ## Lessons Learned:
 

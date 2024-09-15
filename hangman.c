@@ -50,6 +50,14 @@ int menu() {
   printf("1. Play\n");
   printf("2. Quit\n");
   scanf("%d", &choice);
+  while (getchar() != '\n');
+  while (choice !=1 && choice != 2)
+  {
+    printf("Invalid choice. Try again:");
+    scanf("%d", &choice);
+    while (getchar() != '\n');
+  }
+  
   return choice;
 }
 
@@ -62,9 +70,9 @@ char *setup(char *wordLen) {
 
   // Chooses the starting word
   char *chosen_Word = choose_Word();
-  // printf("The chosen word is: %s", chosen_Word);
+  // printf("The chosen word is: %s\n", chosen_Word); // Only for testing :)
 
-  int len = strlen(chosen_Word) - 1;
+  int len = strlen(chosen_Word);
 
   // Loads the hangman base
   for (int i = 0; i < 6; i++) {
@@ -77,7 +85,7 @@ char *setup(char *wordLen) {
   for (int i = 0; i < len; i++) {
     wordLen[i] = '_';
   }
-  wordLen[len] = '\0'; // Null-terminate the string
+  wordLen[len] = '\0';
 
   // Print the initial underscores
   printf("%s", wordLen);
@@ -111,9 +119,12 @@ char *choose_Word() {
 
   // get random word from the file
   while (fgets(buffer, sizeof(buffer), file)) {
+
     if (current_Line == rand_Word_Index) {
       strcpy(chosenWord, buffer);
+      chosenWord[strcspn(chosenWord, "\n")] = '\0';  // Remove newline character
     }
+
     current_Line++;
   }
 
@@ -123,27 +134,26 @@ char *choose_Word() {
 
 void correct_Guess(char *chosen_word, char *wordLen, char guess) {
 
-  for (int i = 0; i < strlen(chosen_word) - 1; i++) {
+  int updated = 0;
 
-    if (chosen_word[i] == guess) {
+  for (int i = 0; i < strlen(chosen_word); i++) {
+
+    if (chosen_word[i] == guess && wordLen[i] != guess) {
       wordLen[i] = guess; // Update guessed letter in the word lines
-
+      updated = 1;
     }
 
   }
-  // Print the updated word lines
-  printf("\nCurrent word: %s\n", wordLen);
+  // If the word was updated, print the updated word lines
+    if (updated) {
+        printf("\nCurrent word: %s\n", wordLen);
+    } else {
+        printf("You already guessed that letter correctly!\n");
+    }
+
 }
 
 void incorrect_Guess(char guess, int inc_Guess){
-  
-  //code for wordbank
-  // char inc_guesses[5];
-
-  // for (int i = 0; i < inc_Guess; i++)
-  // {
-  //   inc_Guess = guess;
-  // }
   
 
   if (inc_Guess >= 1) strcpy(base_Hangman[2], full_Hangman[2]);  // Head
@@ -160,16 +170,21 @@ void incorrect_Guess(char guess, int inc_Guess){
 }
 
 int main() {
+
   srand(time(0));
 
-  int guessed = 0; // if guessed = 1, word has been guessed...end game
-  int dead = 0; // if hangman is alive game keeps going
-  char guess;
-  char *guess_ptr;
-  char *chosen_word;
-  char wordLen[MAX_LEN]; // Array to store the word spaces
-  int inc_Guess = 0;
-  int corr_Guess = 0;
+    int guessed = 0; // if guessed = 1, word has been guessed...end game
+    int dead = 0; // if hangman is alive game keeps going
+    char guess; //stores player guess
+    char *guess_ptr; //ptr stores strchr result
+    char *chosen_word;
+    char wordLen[MAX_LEN]; // Array to store the word spaces
+    int inc_Guess = 0;
+    int corr_Guess = 0;
+    char prev_Guess[MAX_LEN];
+    int count;
+
+
 
   int option = menu();
   while (option != 2) {
@@ -177,13 +192,31 @@ int main() {
     switch (option) {
 
     case 1: {
+      inc_Guess = 0;
+      corr_Guess = 0;
+      guessed = 0;
+      dead = 0;
+      count = 0;
+
+      prev_Guess[0] = '\0';
+
       chosen_word = setup(wordLen); // Setup the game and get the chosen word
 
       // While the word hasn't been guessed...
-      while (guessed != 1 || dead != 1) {
+      while (guessed != 1 ||  dead != 1) {
 
         printf("\n\nChoose a letter: ");
         scanf(" %c", &guess);
+
+        // Check if the guess has been made 
+        if (strchr(prev_Guess, guess) != NULL) {
+          printf("You've already guessed '%c'. Try a different letter.\n", guess);
+          continue;
+        } 
+
+        prev_Guess[count] = guess;
+        prev_Guess[count + 1] = '\0'; // Null-terminate string
+        count++;
 
         // Check if the guess is in the word
         guess_ptr = strchr(chosen_word, guess);
@@ -192,28 +225,36 @@ int main() {
 
           ++inc_Guess;
           incorrect_Guess(guess,inc_Guess);
+
           if(inc_Guess >=6 ){
+
             printf("The word was: %s\nGame Over!\n",chosen_word);
             dead = 1;
             break;
+
           }
 
-        }
+        }// end of if incorrect
+        else if(guess_ptr != NULL){ // If the guessed letter is in the word...
 
-        // If the guessed letter is in the word...
-        if (guess_ptr != NULL) {
-          ++corr_Guess;
           correct_Guess(chosen_word, wordLen, guess);
-          if(corr_Guess == strlen(chosen_word) - 1){
+
+          if (strcmp(chosen_word, wordLen) == 0) {
             printf("\nCongratulations! The word was %s", chosen_word);
             guessed = 1;
             break;
+
           }
+
         }
 
-      }
+        // printf("player guesses are: %s", prev_Guess); // Only for testing :)
 
+      }
       break;
+
+
+
     }
     case 2:
       printf("Goodbye!");
@@ -223,6 +264,8 @@ int main() {
       printf("Incorrect entry. Try again");
       break;
     }
+
+
 
     option = menu();
   }
